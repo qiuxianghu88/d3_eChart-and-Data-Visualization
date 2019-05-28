@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<body>
+	<div id="container"></div>
+</body>
+<script type="text/javascript" src="d3.js"></script>
+<script type="text/javascript">
+	let container=d3.select("#container")
+	d3.csv("data.csv").then(function(data){
+		
+		data.sort((a,b)=>{
+		// sort function will change the order of original data list
+		// => arrow means create function, it is the same with keyword "function"
+			return d3.ascending(a.name,b.name)
+		})
+		filtereddata = data.filter(d => {
+			return d.weight > 600
+		}) //filter doesn't change the orginal data, it create a new subset
+		showData(filtereddata)
+	})
+
+	function showData(clients){
+		for (let client of clients){
+			write(client.name + ", " + client.weight)
+		}
+	}
+		
+	function write(text){
+		container.append("div").text(text)
+	}
+	
+</script>
+</html>
