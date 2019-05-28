@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+</head>
+<body>
+	<div id="container"></div>
+
+</body>
+<script type="text/javascript" src="d3.js"></script>
+<script type="text/javascript">
+	let container=d3.select("#container")
+	d3.csv("data_xz.csv").then(function(data){
+		//before loading csv data, data and html should be in the same server
+		//use python to launch a server (python3 -m http.server)
+		
+		for(let client of data){ 
+		write(client.date) 
+        	}
+});
+function write(text){
+	container.append("div").text(text)
+}
+	
+</script>
+</html>
