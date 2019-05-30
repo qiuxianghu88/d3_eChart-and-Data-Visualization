@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+	<button onclick="addNewClient()">Add</button>
+	<button onclick="removeClient()">Remove</button>
+	<div id="container"></div>
+</body>
+<script type="text/javascript" src = "d3.js"></script>
+<script type="text/javascript">
+	let container = d3.select("#container")
+	let clients = [{
+		Name: "Client0"
+	}]
+	let count = 1;
+	function addNewClient() {
+		clients.push({Name: "Client" + count})
+		count += 1
+		showData(clients)
+	}
+	function removeClient() {
+		clients = clients.slice(0,-1)
+		count -= 1
+		showData(clients)
+	}
+	function showData(clients){
+		let join = container  //return data to "join" variable
+				.selectAll("div") // select all "div" in body tag
+				.data(clients); // select data which used to bind "div"
+		join.enter() // .enter is selecting only the new data point, the data point that doesn't have an equivalent div on our screen
+			.append("div") // for each element that doesn't have a div, we want to append the div
+			.text(d => d.Name + " - New") // we can change the text inside the div to contain the name of the client
+		join.exit().remove() // update the screen to remove the data that is not there
+		join.text(d => d.Name + ": Updated") //join.text only change the text of old data, not change the text of new enter data
+		
+	}
+	showData(clients)
+
+
+
+</script>
+	
+
+</html>
