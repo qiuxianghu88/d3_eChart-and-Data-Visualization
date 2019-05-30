@@ -1,0 +1,70 @@
+<html>
+<head>
+	<script type="text/javascript" src="d3.js"></script>
+</head>
+
+<body>
+	<div id="container"></div>
+
+<script type="text/javascript">
+	const KG_PER_KILO=0.45;
+	const INCH_TO_METER=0.0254;
+
+	let container = d3.select("#container")
+	d3.csv("data.csv").then(dataloaded)
+
+	function dataloaded(clients){
+		clients.map(d => { //map was used to produce the same size list
+			d.BMI = getBMI(d) //d parameter presents data "clients"
+			return d
+		})
+		showData(clients)
+	}
+	
+	function showData(clients){
+		write("------BMI-------")
+
+		for (let client of clients) {
+			write(client.name + ", " + client.BMI)
+		}
+		write("-------------") //write a line to seperate
+		let sum = clients.reduce( //reduce was used to produce one element
+			(pre,curr) =>{
+				return pre + curr.BMI
+			}, 0) // initiate pre with 0
+		let mean = sum/clients.length
+		write("Mean: " + mean)
+
+		write("++++++++++++++++++++++++++++++++++++++++++")
+
+		write("------Weight------")
+		for (let client of clients) {
+						write(client.name + ", " + client.weight)
+					}
+				write("------statistics------")
+				let weightSum = d3.sum(clients, (d) => d.weight)
+				write("Sum: " + weightSum)
+				let extent = d3.extent(clients,d => d.weight) //extent return minimun and maximun value
+				write("extent: " + extent)
+
+	}
+		
+		function getBMI(client){
+		
+			let weightInKg=client.weight*KG_PER_KILO;
+			let heightInMe=client.height*INCH_TO_METER;
+			let BMI=weightInKg/heightInMe/heightInMe;
+
+		return BMI
+		};
+		
+	function write(text){
+		container.append("div").text(text)
+	}
+
+
+	
+	
+</script>
+</body>
+</html>
