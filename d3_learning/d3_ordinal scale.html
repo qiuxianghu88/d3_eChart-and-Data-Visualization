@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+	<svg id="container" height="300"></svg>
+
+</body>
+<script type="text/javascript" src="d3.js"></script>
+<script>
+	let container = d3.select("#container")
+	d3.csv("data.csv").then(showData)
+
+	function showData(clients) {
+		let max = d3.max(clients, d => d.weight)
+		let widthScale = d3.scaleLinear()
+				.range([0,300])
+				.domain([0,max])
+
+	let positionScale = d3.scaleBand()
+						.range([0,200]) // the height of all bands (from top) is 200
+						.domain(clients.map(d => d.name)) // map function will loop each of element in data
+						.padding(0.2) // set the distance between two bands
+	// scaleBand not only convert categorical value to numeric value, 
+	// but also scale the width of band according to the quantity of categorical value
+	// tell the position that the bar should be on the screen
+
+	let join = container // join all the 'rect' with data, so that later we can create one rect to each of the clients
+				.selectAll("rect")
+				.data(clients)
+
+	join.enter()
+		.append('rect') // each time I have new data, add rectangle to the screen
+		.attr("fill","blue")
+		.attr("width", d => widthScale(d.weight))
+		.attr("height", positionScale.bandwidth()) // the height of band is the thick of band
+		.attr("y", d => positionScale(d.name)) // let different rectangle distribution on the screen, or it will overlap together
+	}
+</script>
+</html>
