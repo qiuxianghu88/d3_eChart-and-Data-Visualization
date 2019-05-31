@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+	<div id="container"></div>
+</body>
+<script type="text/javascript" src="d3.js"></script>
+<script type="text/javascript">
+
+	const KG_PER_KILO=0.45;
+	const INCH_TO_METER=0.0254;
+
+	let container = d3.select("#container")
+	d3.csv("data.csv").then(showData)
+
+	function write(text) {
+	container.append("div").text(text)
+	}
+	
+	function showData(clients) {
+		let max = d3.max(clients, d => d.weight)
+		let scale = d3.scaleLinear()
+		.range([0,200]) // let the max data to be 200 pixels
+		.domain([0,max]) 
+		let join = container.selectAll("div")
+			.data(clients)
+		join.enter()
+			.append("div")
+			.text(d => d.name + ": " + scale(d.weight))
+			.style("background-color","blue")
+			.style("margin","5px") // margin 5 pixel
+			.style("color","white")
+			.style("width",d => scale(d.weight))
+	}
+
+</script>
+
+	
+
+
+</html>
