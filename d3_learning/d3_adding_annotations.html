@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+	<svg id="container" height="250" width="400", style="border:solid 1px black">
+		<g id="body" style="transform:translate(50px, 0px)"></g>
+		<g id="yAxis"></g>
+		<g id="xAxis"></g>	
+	</svg>
+
+</body>
+<script type="text/javascript" src="d3.js"></script>
+<script>
+	let body = d3.select("#body")
+	d3.csv("data.csv").then(showData)
+
+	function showData(clients) {
+		let max = d3.max(clients, d => d.weight)
+		let scale = d3.scaleLinear().range([0,300])
+				.domain([0,max])
+
+	let positionScale = d3.scaleBand()
+						.range([0,200]) // the height of all bands (from top) is 200
+						.domain(clients.map(d => d.name)) // map function will loop each of element in data
+						.padding(0.2) // set the distance between two bands
+	// scaleBand not only convert categorical value to numeric value, 
+	// but also scale the width of band according to the quantity of categorical value
+	// tell the position that the bar should be on the screen
+
+	let join = body // join all the 'rect' with data, so that later we can create one rect to each of the clients
+				.selectAll("rect")
+				.data(clients)
+
+	join.enter()
+		.append('rect') // each time I have new data, add rectangle to the screen
+		.style("fill","blue")
+		.style("stroke", "white")
+		.style("width", d => scale(d.weight))
+		.style("height", positionScale.bandwidth()) // the height of band is the thick of band
+		.style("y", d => positionScale(d.name)) // let different rectangle distribution on the screen, or it will overlap together
+	
+	let xAxis = d3.axisBottom(scale)
+				.ticks(4) // only show 5 numbers in xAxis
+				.tickFormat(d => d + " lb") // format the xAxis label value
+
+	d3.select("#xAxis")
+		.attr("transform", "translate(50,200)") // move the xAxis (to right 50, to dowm 200)
+		.call(xAxis) // when d3 call 'xAxis'function, it will draw the whole axis
+
+	let yAxis = d3.axisLeft(positionScale)
+	d3.select("#yAxis")
+		.attr("transform", "translate(50, 0)")
+		.call(yAxis)
+
+
+
+	}
+</script>
+</html>
