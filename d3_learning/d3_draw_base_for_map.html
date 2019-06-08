@@ -1,0 +1,39 @@
+<html>
+
+<head>
+    
+</head>
+
+<body>
+    <svg id="container" height="300" width="500">
+        <g id="body" transform="translate(0,0)"></g>
+    </svg>
+</body>
+<script src="d3.js"></script>
+<script>
+    let body = d3.select("#body")
+    d3.json("countries.geo.json").then(showData) // load json data
+
+    function showData(mapInfo) {
+        let bodyHeight = 400
+        let bodyWidth = 400
+
+    	let projection = d3.geoNaturalEarth1() // create projection, there is different trimed-off among different type of projection
+    		.scale(80) // shrink the map to 80%
+    		.translate([bodyWidth/2, bodyHeight/2]) //change the center position of map to the middle
+
+
+    	let path = d3.geoPath() // create the path
+    		.projection(projection)  //now geoPath know which projection will be used to drwa data
+    	body.selectAll("path")
+    		.data(mapInfo.features)//in the geojson file, all the countries were put into the features
+    		.enter().append("path") // every time we have new country, we add a new path
+    		.attr("d", d => path(d)) //path(d) is the path function we create above (path=d3.geoPath())
+    		.attr("stroke", "black") // make borderline black
+    		.attr("fill", "none") // no shape fill
+    }
+
+
+</script>
+
+</html>
