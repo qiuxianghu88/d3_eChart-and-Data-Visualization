@@ -1,0 +1,60 @@
+<html>
+
+<head>
+    <style>
+        
+
+
+
+    </style>
+</head>
+
+<body>
+    <svg id="container" height="300" width="500">
+        <g id="body" transform="translate(150,150)"></g>
+        
+        
+    </svg>
+</body>
+<script src="d3.js"></script>
+<script>
+    let body = d3.select("#body")
+    d3.csv("data_sale.csv").then(showData)
+
+    function showData(data) {
+        let bodyHeight = 200
+        let bodyWidth = 400
+
+        data = data.map(d => ({
+            country: d.country,
+            sales: +d.sales
+        }))
+    let pie = d3.pie()
+        .value(d => d.sales) // we will use "sales" values of data to make pie chart, which means set pie angle
+    
+    console.log(pie(data)) //log data so that you can see the sales data and start/end angle in the "inspect"-"console"
+
+    // we will map different country to different color
+    let colorScale = d3.scaleOrdinal() // ordinary scale will map value from categorical to be some other value that can be categorical or numerical
+        .range(d3.schemeCategory10) // this is a list of colors that d3 provides you that you can use
+        .domain(data.map(d => d.country))
+    
+    let arc = d3.arc()
+        .outerRadius(bodyHeight/2) // the radius is half of pie diameter (we set the diameter to be bodyHeight)
+        .innerRadius(0) // if you use other number rather than 0, fox example, use 50, it will create a donut chart
+    let g = body.selectAll(".arc") //select all the arc class we have
+        .data(pie(data)) // join the data with "arc" class, pie(data) will compute a new version of the data, where we have start/end angle
+        .enter() // we only use new ones that we want to create new information
+        .append("g") // we use "g" rather than "path", because later we want to do more modification, it is easier to do it in "g"
+    g.append("path") // the path will contain the information that the actual drawing of the arc
+        .attr("d", arc) // in order to draw the arc, we need set attribute "d", arc will return the actual path that we need to draw our charts
+        // create different color for each country
+        .attr("fill", d => {
+            return colorScale(d.data.country) // remember to use "d.data.country" rather than "d.country" because in pie function, it will create data tag in our website.
+        })
+    }
+
+
+</script>
+
+</html>
