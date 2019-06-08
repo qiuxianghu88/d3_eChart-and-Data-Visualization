@@ -1,0 +1,81 @@
+<html>
+
+<head>
+    <style>
+        
+
+
+
+    </style>
+</head>
+
+<body>
+    <svg id="container" height="300" width="500">
+        <g id="body" transform="translate(0,0)"></g>
+    </svg>
+</body>
+<script src="d3.js"></script>
+<script>
+    let body = d3.select("#body")
+    
+    // promise.all provide an array
+    Promise.all([
+        d3.csv("dataset_earthquake.csv"),
+        d3.json("countries.geo.json")
+    ]).then(showData)
+
+
+    function showData(datasources) {
+        let mapInfo = datasources[1] // datasources[1] is the second loaded data json file
+        let data = datasources[0] //datasources[0] is the first data we load above csv file
+        console.log(data)
+
+        let dataIndex = {}
+        for (let c of data){ //loop every element of data
+            let country = c.Country
+            dataIndex[country] = +c.Magnitude // use "+" to convert magnitude to a number
+        }
+        
+        // add magnitude information into GeoJson
+        mapInfo.features = mapInfo.features.map(d => {
+            let country = d.properties.name; // GeoJson store informations about the object inside the key properties
+            let magnitude = dataIndex[country]
+            d.properties.Magnitude = magnitude; //add magnitude information into d
+            return d;
+        })
+
+        let maxEarthquake = d3.max(mapInfo.features, d => d.properties.Magnitude) // get the maximum earthquake
+        let medianEarthquake = d3.median(mapInfo.features, d => d.properties.Magnitude)
+
+        let cScale = d3.scaleLinear()
+            .domain([0, medianEarthquake, maxEarthquake])
+            .range(["white", "orange", "red"]) // the range is from to white to red, red will represent max earthquake
+
+        let bodyHeight = 400
+        let bodyWidth = 400
+
+        var projection = 
+            d3.geoMercator()
+                .scale(80)
+                .translate([bodyWidth / 2, bodyHeight / 2])
+
+
+        var path = d3.geoPath()
+            .projection(projection);
+
+        body.selectAll("path").data(mapInfo.features)
+            .enter().append("path")
+            .attr("d", d => path(d))
+            .attr("stroke", "black")
+            .attr("fill", d => d.properties.Magnitude ? 
+                        cScale(d.properties.Magnitude): // fill the country with our scaled magnitude color
+                        "white" // if there is no magnitude information, fill the country with white
+                )
+
+
+    }
+
+
+</script>
+
+</html>
