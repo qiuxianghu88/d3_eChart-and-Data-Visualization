@@ -1,0 +1,72 @@
+<html>
+
+<head>
+    <style>
+        .line {
+            fill: none; 
+            stroke: blue
+        }
+    </style>
+</head>
+
+<body>
+    <svg id="container" height="300" width="500">
+        <g id="body" transform="translate(50,50)"></g>
+        <g id="xAxis"></g>
+        <g id="yAxis"></g>
+    </svg>
+</body>
+<script src="d3.js"></script>
+<script>
+    let body = d3.select("#body") // select element "id=body"
+    d3.csv("data_price.csv").then(showData)
+
+    function showData(data) {
+        let bodyHeight = 200 // create variable body height and width so that we can change it later
+        let bodyWidth = 400
+
+        // the 'date' in the file is in string format, we should change it to date format
+        data = data.map(d =>({
+            date: new Date(d.date), //create a new Date to replace the original string date(javascript will convert it to a real date format)
+            price: +d.price // make sure our price is always a number by adding '+' at the begining to force javascript to convert this string to a number
+        }))
+
+        let maxValue = d3.max(data, d => d.price) //set the max price as max value, so we can set y scale on verticle
+        
+        let yScale = d3.scaleLinear() //create y scale
+            .range([bodyHeight,0]) //range usually is from zero to something, here we create from bodyheight to zero
+            // the reason we set inverted range is in SVG, everything start top (0,0), then go down, but here we want to things go up,
+            //because usually line is higher means the data price is higher
+            .domain([0, maxValue]); //set domain goes from zero to max Vaule
+        body.append('g')//create a new element group 'g', so we can add axis inside
+            .call(d3.axisLeft(yScale)) //add y axis based on yScale value
+        
+        let xScale = d3.scaleTime()
+            .domain(d3.extent(data, d => d.date)) // extract the minimum and maximum dates in the data
+            .range([0, bodyWidth]) // our range is going from zero to bodywidth
+
+        body.append("g")
+            .attr("transform", "translate(0, " + bodyHeight + ")") //transform the X axis to the bottom, or it will be in the top
+            .call(d3.axisBottom(xScale)
+                .tickFormat(d3.timeFormat("%b"))) //get the month in abbreviated form in axis label, "%b" means month abbreviated form
+
+        //  line generate
+        valueline = d3.line()
+            .x(d => xScale(d.date)) // set x position of every data point
+            .y(d => yScale(d.price)) // set y position of every data point
+            .defined(d => !!d.price) // "!!" return boolean value, check whether has price data or not in that point
+            // this defined will remove null price point
+
+        body.append("path") // for drawing line, we usually use path, which allows us to draw any type of line, then bind data to this path
+            .datum(data) // this is binding the data to our 'path' that we created
+            //here we use '.datum' but not .data', because we don't want to create every line for each point, we create only one line for all the data point
+            // next step we draw the line
+            .attr("d", d => valueline(d)) // set attribute on "d", this is drawing line
+        // format the line so that it will look like the way we want, or it will be default 
+            .attr("class", "line") // the line format has been set at the top <head> tag
+    }
+
+
+</script>
+
+</html>
