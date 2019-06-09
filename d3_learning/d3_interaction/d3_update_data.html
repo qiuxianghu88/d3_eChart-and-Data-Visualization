@@ -1,0 +1,100 @@
+<html>
+
+<head>
+    <style>
+        body {
+            display: flex;
+            padding-left: 20px;
+        }
+        #details {
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <svg id="container" height="160" width="110" , style="border: solid 1px #000; margin-top: 10px">
+        <g id="body" style="transform:translate(40px,10px)"></g>
+        <g id="yAxis"></g>
+    </svg>    
+    <div id="details">
+        <div>Name: <input id="name" /></div>
+        <div>Weight: <input id="weight" /></div>
+        <button id="save">Add/Update</button>
+        <hr>
+        <!-- label like this is for the uncode --> 
+        <div>Min Weight: </div><input id="min-weight" type="number"/>
+    </div>
+</body>
+<script src="d3.js"></script>
+<script>
+    let body = d3.select("#body")
+
+    d3.csv("data_update.csv").then((data) => {
+        showData(data)
+        d3.select("#save").on("click",function() {
+            let name = d3.select("#name").node().value;
+            let weight = d3.select("#weight").node().value;
+            let client = data.find(d => d.Name === name);
+            if (client) { // check whether "client" exist or not
+                client.Weight = weight;
+            } else {
+                data.push({ // if client doesn't exist, add this new clients
+                    Name: name,
+                    Weight: weight
+                })
+            }
+            
+            showData(data)
+        })
+
+        // select id=min-weight and add one event called "change", change will happen everytime use change the value
+        d3.select("#min-weight").on("change", function() { 
+            
+            let value = this.value; // this.value here means the input value
+            let filteredData = data.filter(c => +c.Weight > value); // go through all the data point and select the data above the value
+            showData(filteredData)
+        })
+    })
+
+    
+
+    function showData(clients) {
+        let max = d3.max(clients, d => +d.Weight)
+        let scale = d3.scaleLinear().range([0, 60])
+            .domain([0, max])
+
+        let scalePosition = d3.scaleBand().rangeRound([0, 130]).domain(clients.map(d => d.Name))
+            scalePosition.padding(0.3)
+        let join = body.selectAll("rect")
+            .data(clients)
+
+        let newelements = join.enter() // here use enter(), which only add new element
+            .append("rect")
+            .style("fill", "blue")
+            .style("stroke", "white")
+            .attr("transform", d => `translate(0,${scalePosition(d.Name)})`)
+            .on("click", function(d) {
+                d3.select("#name").node().value = d.Name;
+                d3.select("#weight").node().value = d.Weight
+            })
+
+        join.merge(newelements).transition()
+            .attr("width", d => scale(+d.Weight))
+            .attr("height", scalePosition.bandwidth())
+            .attr("transform", d => `translate(0,${scalePosition(d.Name)})`)
+        
+        join.exit().transition().remove() // d3 will remove any element that is not in the data anymore
+        // if you don't do exit, after filter, the original data will also show in the screen
+        let yAxis = d3.axisLeft(scalePosition)
+        yAxisContainer = d3.select("#yAxis")
+            .style("transform", "translate(40px, 10px)")
+            .transition() 
+            .call(yAxis)
+
+    }
+
+
+</script>
+
+</html>
