@@ -1,0 +1,61 @@
+<html>
+
+<head>
+    
+</head>
+
+<body>
+    <svg id="container" height="300" width="500">
+        <g id="body" transform="translate(0,0)"></g>
+    </svg>
+</body>
+<script src="d3.js"></script>
+<script>
+    let body = d3.select("#body")
+
+    // load both files    
+    Promise.all([
+        d3.csv("data_mark.csv"),
+        d3.json("countries.geo.json")
+        ])
+        .then(showData)
+
+    function showData(datasources) {
+        let bodyHeight = 400
+        let bodyWidth = 400
+        let data = datasources[0]
+        let mapInfo = datasources[1]
+
+    	let projection = d3.geoMercator() // create projection, there is different trimed-off among different type of projection
+    		.scale(70) // shrink the map to 80%
+    		.translate([bodyWidth/2, bodyHeight/2]) //change the center position of map to the middle
+
+
+    	let path = d3.geoPath() // create the path
+    		.projection(projection)  //now geoPath know which projection will be used to drwa data
+    	body.selectAll("path")
+    		.data(mapInfo.features)//in the geojson file, all the countries were put into the features
+    		.enter().append("path") // every time we have new country, we add a new path
+    		.attr("d", d => path(d)) //path(d) is the path function we create above (path=d3.geoPath())
+    		.attr("stroke", "#999") // make borderline to be one color, #999 resent one type of color
+    		.attr("fill", "#eee") // fill region with one type of color #eee light grey
+        
+
+        body.selectAll("circle") // I want to draw one circle for each earthquake that we have in the data
+            .data(data) // binding with data
+            .enter()
+            .append("circle")
+            .attr("r", 2) // set the attribute radius 3
+            .attr("fill", "#0055AA") // set the fill color of circle
+            .style("opacity", 0.5) // because there are overlap circle, so set opacity
+            .attr("cx", d => projection([+d.Longitude, +d.Latitude])[0]) // set the x position of our circle by scale the longtutude and latitude
+            // the first element of projection (projection[0]) is the x position
+            // note: the data should contain the longitude and latitude information
+            .attr("cy", d => projection([+d.Longitude, +d.Latitude])[1]) // set tje y position of our circle
+
+    }
+
+
+</script>
+
+</html>
