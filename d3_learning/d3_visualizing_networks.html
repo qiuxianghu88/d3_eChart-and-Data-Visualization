@@ -1,0 +1,79 @@
+<html>
+
+<head>
+    <style>
+        .links line {
+            stroke: black
+        }
+    </style>
+</head>
+
+<body>
+    <svg id="container" height="300" width="500">
+        <g id="body" transform="translate(0,0)"></g>
+    </svg>
+</body>
+<script src="d3.js"></script>
+<script>
+    let body = d3.select("#body")
+
+
+    d3.json("data_network.json").then(showData)
+
+    function createElements(data) {
+        let nodes =body.append("g") // in order to separate the circles from links in an easier way, we create group for each
+            .attr("class", "nodes") // use a class to make it easy to select this group later, and I call this class nodes
+            // now we will bind the data
+            .selectAll("circles")  // select all the circles that are inside my group
+            .data(data.nodes)// to those circles, I will bind my data, in the data, there are two keys, one is nodes, another is links, here I bind nodes
+            .enter() 
+            .append("circle") // to every new element, we will append a new circle
+                .attr("r", 5) // define the radius of the circle
+                .attr("fill", "black") //fill the circle with black
+        
+        let links = body.append("g")
+            .attr("class", "links")
+            .selectAll("line")
+            .data(data.links)
+            .enter()
+            .append("line")
+    }
+
+    function updateElements() {
+        d3.select(".nodes") // select our nodes group (we create node class above) that contains the nodes, 
+            .selectAll("circle") // select circles from nodes group
+            .attr("cx", d => d.x) // set x position of the circle (tick function below will add x, y postion for nodes)
+            .attr("cy", d => d.y) // set y position of the circle
+        d3.select(".links")
+            .selectAll("line") // select all lines in the class links
+            .attr("x1", d => d.source.x) // set the starts and ends of line. x1 is where the line starts in x position
+            .attr("y1", d => d.source.y) // set the y position of line starts
+            .attr("x2", d => d.target.x) // set the end of line in x position
+            .attr("y2", d => d.target.y) // set the end of line in y position
+
+    }
+
+
+    function showData(data) {
+        let bodyHeight = 400
+        let bodyWidth = 400
+
+        createElements(data) // add all the element to the screen
+
+        let simulation = d3.forceSimulation()
+            .force("link", d3.forceLink().id((d) => d.id)) // this function basically takes node as input, and returns the id of the node
+            .force("charge", d3.forceManyBody()) // this function will make nodes well spaced or well centralized and so on
+            .force("center", d3.forceCenter(bodyWidth/2, bodyHeight/2)) // make sure the result is more towards the center of my visualization on the screen
+    
+        // simulate our data
+        simulation.nodes(data.nodes)
+            .on("tick", updateElements); // this tick function will automatically add x, y position of nodes
+            // everytime I have a new update, I am going to run this tick function
+        simulation.force("link").links(data.links) // force("link"): the link here is we created at the top (in head tag)
+
+    }
+
+
+</script>
+
+</html>
