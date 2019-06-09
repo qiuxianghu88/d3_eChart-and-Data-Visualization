@@ -1,0 +1,63 @@
+<html>
+
+<head>
+    <style>
+        .links line {
+            stroke: black
+        }
+    </style>
+</head>
+
+<body>
+    <svg id="container" height="300" width="500">
+        <g id="body" transform="translate(0,0)"></g>
+    </svg>
+</body>
+<script src="d3.js"></script>
+<script>
+    let body = d3.select("#body")
+
+    
+    d3.json("data_tree_map.json").then(showData)
+    
+    function showData(data) {
+        let bodyHeight = 300
+        let bodyWidth = 500
+        
+        let treemap = d3.treemap()
+            .size([bodyWidth, bodyHeight]) // define the size of tree map be equal with body width and height
+            .paddingInner(1) // seperate different squares a little bit (1 pixel)
+        
+        // transform our data to a network (root, children, parents)
+        let root = d3.hierarchy(data)
+            .sum(d => d.sales) // sum the sales in the data to its parents
+        // console.log(root) we can check how data are sum from console
+        treemap(root) // this treemap function will processing our data and add the position of square box, next step is to draw this square to screen
+
+        // create different color for each square by color scale, schemeCategory10 is a color plate that we can use
+        let cScale = d3.scaleOrdinal(d3.schemeCategory10) 
+
+        let cell = body.selectAll("g") // we use group element in SVG
+            // our goal is to create one "g" for each city in our data
+            .data(root.leaves()) // leaves are the end of our tree that in this case it will be the cities
+            .enter()
+            .append("g") // we create a g for every new leaves (every new cities)
+            .attr("transform", d => `translate(${d.x0},${d.y0})`) // position these g in the right position
+                // d.x0 and d.y0 is the position of the top of the square in the x, y coordinate
+        
+        cell.append("rect") // for each of group we will add a rectangle
+            .attr("width", d => d.x1 - d.x0) // set rectangle width
+            .attr("height", d => d.y1 - d.y0) // set rectangle height
+            .attr("fill", d => cScale(d.parent.data.name)) // in our data, parent is our state, data.name is our cities
+    
+        // above defined "cell", we use group, because group can be added text
+        cell.append("text")
+            .text(d => d.data.name) // add city name to the square
+            .attr("alignment-baseline", "hanging") //set position of text, this means change baseline to hanging, where always on the top
+            .attr("fill", "white") // set tje text color to be white
+    }
+
+
+</script>
+
+</html>
