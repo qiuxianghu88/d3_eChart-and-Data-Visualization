@@ -1,0 +1,105 @@
+<html>
+
+<head>
+    <style>
+        body {
+            display: flex;
+            padding-left: 20px;
+        }
+
+        #details {
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <svg id="container" height="160" width="110" , style="border: solid 1px #000; margin-top: 10px">
+        <g id="body" style="transform:translate(40px,10px)"></g>
+        <g id="yAxis"></g>
+    </svg>
+    <div id="details">
+        <div style="color: #999">
+            User Details...
+        </div>
+    </div>
+</body>
+<script src="d3.js"></script>
+<script>
+    let body = d3.select("#body")
+    let data = []
+    d3.csv("data_listen_to_event.csv").then((d) => {
+        data = d;
+        showData(data)
+    })
+
+    function select(datapoint) {
+
+    }
+
+    function showData(clients) {
+        let max = d3.max(clients, d => +d.Weight)
+        let scale = d3.scaleLinear().range([0, 60])
+            .domain([0, max])
+
+        let scalePosition = d3.scaleBand().rangeRound([0, 130]).domain(clients.map(d => d.Name))
+        scalePosition.padding(0.3)
+        let join = body.selectAll("rect")
+            .data(clients)
+
+        join.enter()
+            .append("rect")
+            .style("fill", "blue")
+            .style("stroke", "white")
+            .attr("width", d => scale(+d.Weight))
+            .attr("height", scalePosition.bandwidth())
+            .attr("transform", d => `translate(0,${scalePosition(d.Name)})`)
+            .on("click", d => {
+                d3.select("#details").text(d.Name) // change the text to "d.Name" in this div, you can also add more information, such as people's weight
+            }) // listen to the event that whether user click the bars, when user click bar, on the right will appear the name of bar
+            // when mouse is over the element, change the color of the element to be red
+            .on("mouseover", function() { 
+                this.style.fill = "red" // you can use "this" function to change the this specific element, notice "this" cannot use arrow "=>"
+            })
+            .on("mouseout", function() {
+                this.style.fill = "blue" // when mouse leave, change the color to be blue
+            })
+        
+        // create a red line on the left of square
+        let line = d3.select("#container").append("g")
+            .attr("transform", "translate(0,-10)")
+
+        line.append("line")
+            .attr("x1", 0)
+            .attr("x2", 0)
+            .attr("y1", 0)
+            .attr("y2", 200)
+            .attr("stroke", "red")
+            .attr("stroke-width", "3px")
+
+        // create a y Axis
+        let yAxis = d3.axisLeft(scalePosition)
+        yAxisContainer = d3.select("#yAxis")
+            .style("transform", "translate(40px, 10px)")
+            .transition()
+            .call(yAxis)
+
+        // change the position of red line: when move mouse, the red line follow the mouse
+        d3.select("#container") // select SVG, because SVG has an id which called "container", so we can just select this id
+            .on("mousemove", function() {
+              
+              // [0] below means the first element which is x position, [1] means the second element, which is y
+              let x = d3.mouse(this)[0] // this tell the position of mouse relative to SVG rather than the edge of screen, so we don't use d3.event.x 
+              // d3.event contain all the information about the event that just happened, d3.event.y tells y position of mouse
+              let y = d3.event.y // in fact y is not useful here, because we only want to know the position of x
+              
+              // because we have created line variable above, so we don't need to use d3.select, we can directly use line
+              line.attr("transform", `translate(${x}, -10)`) // we only change x, and keep y as -10
+            // because line is a group, we transform a group, so we don't need to change all the x and y's of line
+            })
+    }
+
+
+</script>
+
+</html>
